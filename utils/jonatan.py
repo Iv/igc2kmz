@@ -89,10 +89,7 @@ def get_igc(row):
     igc_url = None
     if resp.status_code == 200:
         igc_url = get_igc_url(resp.content)
-        # lock.acquire()
         print(igc_url)
-        # row['igc_url'] = igc_url
-        # lock.release()
 
         if (igc_url):
             urllib.urlretrieve("https://paraplan.ru/forum/%s" % igc_url,
@@ -113,8 +110,6 @@ if __name__ == "__main__":
 
     PROCESSES = 4
     pool = multiprocessing.Pool(PROCESSES)
-    lock = multiprocessing.Lock()
-
     res = [pool.apply_async(get_igc, [row], callback=row.update) for row in rows]
     pool.close()
     pool.join()
