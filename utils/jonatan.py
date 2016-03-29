@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
+
+import multiprocessing
 import requests
 import lxml.html
 import lxml.etree
@@ -77,6 +79,28 @@ def get_igc_url(content):
     return href
 
 
+def get_igc(row):
+    # lock.acquire()
+    href = row['href']
+    print(href)
+    # lock.release()
+
+    resp = get_page(row['href'])
+    igc_url = None
+    if resp.status_code == 200:
+        igc_url = get_igc_url(resp.content)
+        # lock.acquire()
+        print(igc_url)
+        # row['igc_url'] = igc_url
+        # lock.release()
+
+        if (igc_url):
+            urllib.urlretrieve("https://paraplan.ru/forum/%s" % igc_url,
+                               filename=os.path.join(path, "%d_%d.igc" % (row['n'], row['flight_number'])))
+
+    return {'igc_url': igc_url}
+
+
 if __name__ == "__main__":
     response = get_page(URL)
     print ("response_status_code = %d " % response.status_code)
@@ -87,17 +111,13 @@ if __name__ == "__main__":
 
     path = os.path.join(os.path.dirname(__file__), '../examples_jonatan/')
 
-    # opener = urllib.URLopener()
-    for row in rows:
-        print(row['href'])
-        response = get_page(row['href'])
-        if response.status_code == 200:
-            igc_url = get_igc_url(response.content)
-            print(igc_url)
-            row['igc_url'] = igc_url
-            if(igc_url):
-                urllib.urlretrieve("https://paraplan.ru/forum/%s" % igc_url, 
-                       filename=os.path.join(path, "%d_%d.igc" % (row['n'], row['flight_number'])))
+    PROCESSES = 4
+    pool = multiprocessing.Pool(PROCESSES)
+    lock = multiprocessing.Lock()
+
+    res = [pool.apply_async(get_igc, [row], callback=row.update) for row in rows]
+    pool.close()
+    pool.join()
 
     with open(os.path.join(path, 'jonatan.csv'), 'w') as fp:
         writer = csv.DictWriter(fp, delimiter=",",
@@ -118,4 +138,4 @@ if __name__ == "__main__":
         for row in rows:
             writer.writerow(row)
 
-        pprint(rows)
+    pprint(rows)
