@@ -99,12 +99,8 @@ class OptimisationDeterministic(BaseOptimisation):
 
                             if d > distance:
                                 distance = d
-                                start = c1
-                                p1 = c2
-                                p2 = c3
-                                p3 = c4
-                                finish = c5
-
+                                start, p1, p2, p3, finish = c1, c2, c3, c4, c5
+                                
         return distance, start, p1, p2, p3, finish
     
 
@@ -202,6 +198,6 @@ class Optimisation(BaseOptimisation):
 
                                 if d > distance:
                                     distance = d
-                                    start, p1, p2, p3, finish = c1, c2, c3, c4
+                                    start, p1, p2, p3, finish = c1, c2, c3, c4, c5
 
         return start, p1, p2, p3, finish
