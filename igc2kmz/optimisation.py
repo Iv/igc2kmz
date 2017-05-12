@@ -82,7 +82,7 @@ class OptimisationDeterministic(BaseOptimisation):
 
 
 class Optimisation(BaseOptimisation):
-    
+
     def find_max_distance(self):
         sets = []
         for i, s1 in enumerate(self.sets):

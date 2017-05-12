@@ -9,10 +9,10 @@ EXAMPLES_DIR = os.path.join(BASE_DIR, 'examples_jonatan')
 ACCURACY = 2
 
 import igc2kmz.igc
-from igc2kmz.optimisation import Optimisation
+from igc2kmz.optimisation import OptimisationDeterministic
 
 
-class TestTrack(unittest.TestCase):
+class TestTrackDet(unittest.TestCase):
     FILE = '118_1.igc'
 
     def get_file_name(self):
@@ -33,6 +33,6 @@ class TestTrack(unittest.TestCase):
         self.assertEqual(len(track.coords), 5890)
         
     def test_find_max_distance(self):
-        o = Optimisation(self.get_igc().track())
+        o = OptimisationDeterministic(self.get_igc().track())
         distance, start, finish = o.find_max_distance()
         self.assertTrue(abs(distance - 108047) < ACCURACY)
