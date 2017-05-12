@@ -248,8 +248,8 @@ class IGC(object):
                 line = line.rstrip()
                 letter = line[0]
                 if letter in class_by_letter:
-                    klass = class_by_letter[letter]
-                    record = klass.parse(line, self)
+                    cls = class_by_letter[letter]
+                    record = cls.parse(line, self)
                     if record:
                         self.records.append(record)
                 else:

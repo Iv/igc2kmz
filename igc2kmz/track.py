@@ -29,6 +29,9 @@ DIVE = 3
 class Track(object):
 
     def __init__(self, coords, **kwargs):
+        """        
+        :param Coord[] coords: list of coordinates 
+        """
         self.coords = Track.filter(coords)
         self.t = [int(time.mktime(c.dt.timetuple())) for c in self.coords]
         self.pilot_name = None
@@ -40,7 +43,12 @@ class Track(object):
 
     @classmethod
     def filter(self, coords):
-        """Filter out erroneous points."""
+        """ 
+        Filter out erroneous points.
+        
+        :param Coord[] coords: list of cords
+        :return Coord[]
+        """
         # TODO replace with Kahlman filter?
         # TODO cope with erroneous points at start of track
         result = [coords[0]]
