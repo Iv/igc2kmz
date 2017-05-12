@@ -59,7 +59,7 @@ class BaseOptimisation(object):
             self.sets.append(Set(cs))
 
 
-class OptimisationDereministic(BaseOptimisation):
+class OptimisationDeterministic(BaseOptimisation):
     def find_max_distance(self, coords=[]):
         if not coords:
             coords = self.coords
