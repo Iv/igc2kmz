@@ -3,11 +3,14 @@ import sys
 import os
 
 import multiprocessing
+import time
+
 import requests
 import lxml.html
 import lxml.etree
 import unicodecsv as csv
 import urllib
+import codecs
 
 from pprint import PrettyPrinter
 
@@ -15,15 +18,14 @@ from pprint import PrettyPrinter
 URL = "https://paraplan.ru/forum/jonatan.php"
 FLIGHT_URL = "https://paraplan.ru/forum/modules.php?name=leonardo&op=show_flight&flightID=45741"
 
-
 class MyPrettyPrinter(PrettyPrinter):
     def format(self, *args, **kwargs):
         repr, readable, recursive = PrettyPrinter.format(self, *args, **kwargs)
         if repr:
             if repr[0] in ('"', "'"):
-                repr = repr.decode('string_escape')
+                repr = str(codecs.escape_decode(repr))
             elif repr[0:2] in ("u'", 'u"'):
-                repr = repr.decode('unicode_escape').encode(sys.stdout.encoding)
+                repr = str(codecs.decode(repr, 'unicode_escape').encode(sys.stdout.encoding))
         return repr, readable, recursive
 
 
@@ -83,6 +85,7 @@ def get_igc(row):
     # lock.acquire()
     href = row['href']
     print(href)
+    time.sleep(10)
     # lock.release()
 
     resp = get_page(row['href'])
@@ -90,17 +93,22 @@ def get_igc(row):
     if resp.status_code == 200:
         igc_url = get_igc_url(resp.content)
         print(igc_url)
-
         if (igc_url):
-            urllib.urlretrieve("https://paraplan.ru/forum/%s" % igc_url,
-                               filename=os.path.join(path, "%d_%d.igc" % (row['n'], row['flight_number'])))
+            url = "https://paraplan.ru/forum/{}".format(igc_url)
+            path = os.path.realpath(os.path.join(os.path.dirname(__file__), '../examples_jonatan/'))
 
+            name = os.path.join(path, "{}_{}.igc".format(row['n'], row['flight_number']))
+            print(f"URL: {url} \nname:{name}\n")
+            urllib.request.urlretrieve(url, name)
+
+    else:
+        print('Error: {:d}'.format(resp.status_code))
     return {'igc_url': igc_url}
 
 
 if __name__ == "__main__":
     response = get_page(URL)
-    print ("response_status_code = %d " % response.status_code)
+    print ("response_status_code = {}".format(response.status_code))
     rows = parse_table(response.content)
 
     # pprint(rows)
@@ -108,28 +116,28 @@ if __name__ == "__main__":
 
     path = os.path.join(os.path.dirname(__file__), '../examples_jonatan/')
 
-    PROCESSES = 4
+    PROCESSES = 1
     pool = multiprocessing.Pool(PROCESSES)
     res = [pool.apply_async(get_igc, [row], callback=row.update) for row in rows]
     pool.close()
     pool.join()
 
-    with open(os.path.join(path, 'jonatan.csv'), 'w') as fp:
+    with open(os.path.join(path, 'jonatan.csv'), 'wb') as fp:
         writer = csv.DictWriter(fp, delimiter=",",
-                                fieldnames=[
-                                    'n',
-                                    'flight_number',
-                                    'name',
-                                    'nickname',
-                                    'points',
-                                    'task',
-                                    'start',
-                                    'dt',
-                                    'href',
-                                    'command',
-                                    'glider',
-                                    'igc_url'
-                                ])
+        fieldnames=[
+            'n',
+            'flight_number',
+            'name',
+            'nickname',
+            'points',
+            'task',
+            'start',
+            'dt',
+            'href',
+            'command',
+            'glider',
+            'igc_url'
+        ])
         for row in rows:
             writer.writerow(row)
 
